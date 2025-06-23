@@ -1,144 +1,544 @@
-/* Base Components */
-.app-container {
+:root {
+  --primary-color: #4361ee;
+  --primary-dark: #3a56d4;
+  --secondary-color: #3f37c9;
+  --success-color: #4cc9f0;
+  --danger-color: #f72585;
+  --warning-color: #f8961e;
+  --light-color: #f8f9fa;
+  --dark-color: #212529;
+  --gray-color: #6c757d;
+  --light-gray: #e9ecef;
+  --border-radius: 8px;
+  --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  background-color: #f8f9fa;
+  color: var(--dark-color);
+}
+
+.app {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  min-height: 100vh;
 }
 
 .app-header {
+  background-color: white;
+  padding: 1rem 2rem;
+  box-shadow: var(--box-shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #444;
 }
 
-/* Wallet Connection */
-.connect-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  background-color: #1a1a1a;
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 1.5rem;
+}
+
+.account-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.wallet-address {
+  background-color: black;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.university-badge {
+  background-color: var(--primary-color);
   color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.connect-wallet-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: var(--transition);
 }
 
-.connect-button:hover {
-  border-color: #646cff;
+.connect-wallet-button:hover {
+  background-color: var(--primary-dark);
 }
 
-.wallet-info {
+.connect-wallet-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.connect-wallet-button.large {
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+}
+
+.app-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.loading-screen,
+.welcome-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 2rem;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(67, 97, 238, 0.2);
+  border-top: 5px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.welcome-screen h2 {
+  color: var(--primary-color);
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-screen p {
+  color: var(--gray-color);
+  font-size: 1.1rem;
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.view-header h2 {
+  color: var(--primary-color);
+}
+
+.controls {
   display: flex;
   gap: 1rem;
   align-items: center;
 }
 
-/* Certificate Views */
-.university-view, .student-card {
-  background: #1a1a1a;
-  padding: 2rem;
-  border-radius: 12px;
-  text-align: left;
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.filter-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--light-gray);
+  background-color: white;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.9rem;
+}
+
+.filter-button.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.refresh-button,
+.search-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--light-gray);
+  border: none;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.refresh-button:hover,
+.search-button:hover {
+  background-color: #d1d7e0;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
 .tabs {
   display: flex;
-  gap: 1rem;
+  border-bottom: 1px solid var(--light-gray);
   margin-bottom: 2rem;
 }
 
 .tab {
-  padding: 0.5rem 1rem;
-  background: transparent;
+  padding: 0.75rem 1.5rem;
+  background: none;
   border: none;
-  border-bottom: 2px solid transparent;
-  color: #aaa;
   cursor: pointer;
+  font-weight: 600;
+  color: var(--gray-color);
+  transition: var(--transition);
+  position: relative;
 }
 
 .tab.active {
-  color: #646cff;
-  border-bottom-color: #646cff;
+  color: var(--primary-color);
 }
 
-/* Forms */
+.tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: var(--primary-color);
+}
+
+.issue-form {
+  max-width: 600px;
+  margin: 0 auto;
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.issue-form h3 {
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
 }
 
-.form-group input {
-  padding: 0.8rem;
-  border-radius: 8px;
-  border: 1px solid #444;
-  background: #2d2d2d;
+.input-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-field label {
+  font-weight: 600;
   color: white;
 }
 
-/* Certificate Items */
-.certificates-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-top: 1.5rem;
+.input-field input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  transition: var(--transition);
 }
 
-.certificate-item {
-  background: #2d2d2d;
-  padding: 1.5rem;
-  border-radius: 8px;
+.input-field input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.2);
+}
+
+.primary-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.primary-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.primary-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.manage-certificates {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.search-container {
+  margin-bottom: 2rem;
+}
+
+.search-input {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
+}
+
+.search-input input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+}
+
+.current-student {
+  background-color: var(--light-gray);
+  padding: 1rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 0.5rem;
   align-items: center;
 }
 
-.status {
+.current-student code {
+  font-family: monospace;
+  background-color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.certificates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.certificate-card {
+  background-color: white;
+  border: 1px solid var(--light-gray);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: var(--transition);
+  box-shadow: var(--box-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.certificate-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.certificate-card.revoked {
+  opacity: 0.7;
+  background-color: #f8f9fa;
+}
+
+.card-header {
+  padding: 1.5rem 1.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.card-header h3 {
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-badge.valid {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.status-badge.revoked {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.card-body {
+  padding: 0 1.5rem 1.5rem;
+  flex: 1;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.detail-label {
   font-weight: 600;
+  color: var(--gray-color);
 }
 
-.status.valid {
-  color: #4CAF50;
+.detail-value {
+  font-family: monospace;
+  word-break: break-all;
+  text-align: right;
+  max-width: 60%;
 }
 
-.status.revoked {
-  color: #F44336;
-  text-decoration: line-through;
+.card-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--light-gray);
+  display: flex;
 }
 
-.revoke-button {
-  background: #F44336;
+.danger-button {
+  background-color: var(--danger-color);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
   cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
 }
 
-/* Light mode adaptations */
-@media (prefers-color-scheme: light) {
-  .university-view, .student-card {
-    background: #f9f9f9;
-    border: 1px solid #e1e5eb;
+.danger-button:hover {
+  background-color: #e51774;
+}
+
+.danger-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: var(--gray-color);
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
   }
   
-  .form-group input {
-    background: white;
-    color: #213547;
-    border: 1px solid #ddd;
+  .view-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
   
-  .certificate-item {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  .controls {
+    width: 100%;
+    justify-content: space-between;
   }
   
-  .connect-button {
-    background-color: #f9f9f9;
-    color: #213547;
+  .search-input {
+    flex-direction: column;
+  }
+  
+  .certificates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #f0f0f0;
+  }
+  
+  .app-header,
+  .issue-form,
+  .manage-certificates,
+  .certificate-card {
+    background-color: #1e1e1e;
+    color: #f0f0f0;
+  }
+  
+  .input-field input,
+  .search-input input {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+    border-color: #444;
+  }
+  
+  .filter-button {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+    border-color: #444;
+  }
+  
+  .filter-button.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .refresh-button,
+  .search-button {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+  }
+  
+  .detail-label {
+    color: #aaa;
+  }
+  
+  .current-student code {
+    background-color: #2d2d2d;
+    color: #f0f0f0;
+  }
+  
+  .certificate-card.revoked {
+    background-color: #252525;
   }
 }

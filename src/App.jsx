@@ -10,6 +10,7 @@ const CONTRACT_ADDRESS = addressJson.Certificate;
 function StudentView({ contract, account }) {
   const [certificates, setCertificates] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState('all');
 
   const fetchCertificates = async () => {
     try {
@@ -36,29 +37,78 @@ function StudentView({ contract, account }) {
     }
   };
 
-  return (
-    <div className="student-card">
-      <button
-        className={`action-button ${isLoading ? "loading" : ""}`}
-        onClick={fetchCertificates}
-        disabled={isLoading}
-      >
-        {isLoading ? "Loading..." : "Refresh Certificates"}
-      </button>
+  const filteredCertificates = certificates.filter(cert => {
+    if (filter === 'all') return true;
+    return filter === 'valid' ? cert.isValid : !cert.isValid;
+  });
 
-      <div className="certificates-list">
-        {certificates.length > 0 ? (
-          certificates.map((cert, i) => (
-            <div key={i} className={`certificate-item ${cert.isValid ? "" : "revoked"}`}>
-              <h3>{cert.studentName}</h3>
-              <p className="ipfs-hash">IPFS: {cert.ipfsHash}</p>
-              <p className="status">
-                Status: <span>{cert.isValid ? "✅ Valid" : "❌ Revoked"}</span>
-              </p>
+  return (
+    <div className="student-view">
+      <div className="view-header">
+        <h2>My Certificates</h2>
+        <div className="controls">
+          <div className="filter-buttons">
+            <button 
+              className={`filter-button ${filter === 'all' ? 'active' : ''}`}
+              onClick={() => setFilter('all')}
+            >
+              All
+            </button>
+            <button 
+              className={`filter-button ${filter === 'valid' ? 'active' : ''}`}
+              onClick={() => setFilter('valid')}
+            >
+              Valid
+            </button>
+            <button 
+              className={`filter-button ${filter === 'revoked' ? 'active' : ''}`}
+              onClick={() => setFilter('revoked')}
+            >
+              Revoked
+            </button>
+          </div>
+          <button
+            className="refresh-button"
+            onClick={fetchCertificates}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <span className="spinner"></span> Loading...
+              </>
+            ) : (
+              'Refresh'
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="certificates-grid">
+        {filteredCertificates.length > 0 ? (
+          filteredCertificates.map((cert) => (
+            <div key={cert.index} className={`certificate-card ${!cert.isValid ? 'revoked' : ''}`}>
+              <div className="card-header">
+                <h3>{cert.studentName}</h3>
+                <span className={`status-badge ${cert.isValid ? 'valid' : 'revoked'}`}>
+                  {cert.isValid ? 'VALID' : 'REVOKED'}
+                </span>
+              </div>
+              <div className="card-body">
+                <div className="detail-row">
+                  <span className="detail-label">IPFS Hash:</span>
+                  <span className="detail-value">{cert.ipfsHash}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Certificate ID:</span>
+                  <span className="detail-value">{cert.index}</span>
+                </div>
+              </div>
             </div>
           ))
         ) : (
-          <p className="no-certificates">No certificates found</p>
+          <div className="empty-state">
+            <p>{filter === 'all' ? "No certificates found" : `No ${filter} certificates found`}</p>
+          </div>
         )}
       </div>
     </div>
@@ -95,7 +145,7 @@ function UniversityView({ contract }) {
       }
 
       setCertificates(fetchedCerts);
-      setCurrentStudent(address); // Store the validated address
+      setCurrentStudent(address);
     } catch (err) {
       console.error("Fetch Error:", err);
       alert(`❌ Error: ${err.reason || err.message}`);
@@ -126,11 +176,7 @@ function UniversityView({ contract }) {
       setIpfsHash("");
       await fetchStudentCertificates(studentAddress);
     } catch (err) {
-      console.error("Issue Error:", {
-        error: err,
-        message: err.message,
-        data: err.data
-      });
+      console.error("Issue Error:", err);
       alert(`❌ Error: ${err.reason || err.message}`);
     } finally {
       setIsLoading(false);
@@ -140,7 +186,7 @@ function UniversityView({ contract }) {
   const revokeCertificate = async (index) => {
     try {
       if (!currentStudent) {
-        throw new Error("No student selected. Please search for a student first.");
+        throw new Error("Please search for a student first");
       }
       if (isNaN(index)) {
         throw new Error("Invalid certificate index");
@@ -148,27 +194,15 @@ function UniversityView({ contract }) {
 
       setIsLoading(true);
       const tx = await contract.revokeCertificate(
-        currentStudent, // Use the stored validated address
+        currentStudent,
         index,
         { gasLimit: 300000 }
       );
-      
-      console.log("Revoke TX:", {
-        address: currentStudent,
-        index,
-        txHash: tx.hash
-      });
-      
       await tx.wait();
       alert("✅ Certificate revoked successfully!");
       await fetchStudentCertificates(currentStudent);
     } catch (err) {
-      console.error("Revoke Error:", {
-        error: err,
-        address: currentStudent,
-        index,
-        contractAddress: contract.address
-      });
+      console.error("Revoke Error:", err);
       alert(`❌ Revoke Failed: ${err.reason || err.message}`);
     } finally {
       setIsLoading(false);
@@ -177,6 +211,10 @@ function UniversityView({ contract }) {
 
   return (
     <div className="university-view">
+      <div className="view-header">
+        <h2>University Dashboard</h2>
+      </div>
+      
       <div className="tabs">
         <button
           className={`tab ${activeTab === "issue" ? "active" : ""}`}
@@ -194,86 +232,121 @@ function UniversityView({ contract }) {
 
       {activeTab === "issue" ? (
         <div className="issue-form">
-          <h2>Issue New Certificate</h2>
+          <h3>Issue New Certificate</h3>
           <div className="form-group">
-            <input
-              type="text"
-              placeholder="Student Address (0x...)"
-              value={studentAddress}
-              onChange={(e) => setStudentAddress(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Student Name"
-              value={studentName}
-              onChange={(e) => setStudentName(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="IPFS Hash"
-              value={ipfsHash}
-              onChange={(e) => setIpfsHash(e.target.value)}
-            />
+            <div className="input-field">
+              <label>Student Address</label>
+              <input
+                type="text"
+                placeholder="0x..."
+                value={studentAddress}
+                onChange={(e) => setStudentAddress(e.target.value)}
+              />
+            </div>
+            <div className="input-field">
+              <label>Student Name</label>
+              <input
+                type="text"
+                placeholder="John Doe"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+              />
+            </div>
+            <div className="input-field">
+              <label>IPFS Hash</label>
+              <input
+                type="text"
+                placeholder="Qm..."
+                value={ipfsHash}
+                onChange={(e) => setIpfsHash(e.target.value)}
+              />
+            </div>
           </div>
           <button
-            className="action-button"
+            className="primary-button"
             onClick={issueCertificate}
             disabled={isLoading}
           >
-            {isLoading ? "Processing..." : "Issue Certificate"}
+            {isLoading ? (
+              <>
+                <span className="spinner"></span> Processing...
+              </>
+            ) : (
+              'Issue Certificate'
+            )}
           </button>
         </div>
       ) : (
         <div className="manage-certificates">
-          <h2>Manage Certificates</h2>
-          <div className="search-student">
-            <input
-              type="text"
-              placeholder="Enter Student Address (0x...)"
-              value={studentAddress}
-              onChange={(e) => setStudentAddress(e.target.value)}
-            />
-            <button
-              className="search-button"
-              onClick={() => fetchStudentCertificates(studentAddress)}
-              disabled={isLoading}
-            >
-              {isLoading ? "Loading..." : "Search"}
-            </button>
+          <h3>Manage Certificates</h3>
+          <div className="search-container">
+            <div className="search-input">
+              <input
+                type="text"
+                placeholder="Enter Student Address (0x...)"
+                value={studentAddress}
+                onChange={(e) => setStudentAddress(e.target.value)}
+              />
+              <button
+                className="search-button"
+                onClick={() => fetchStudentCertificates(studentAddress)}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Searching...' : 'Search'}
+              </button>
+            </div>
           </div>
 
           {currentStudent && (
-            <p className="current-student">
-              Viewing certificates for: <code>{currentStudent}</code>
-            </p>
+            <div className="current-student">
+              <span>Managing:</span>
+              <code>{currentStudent}</code>
+            </div>
           )}
 
           {certificates.length > 0 ? (
-            <div className="certificates-list">
+            <div className="certificates-grid">
               {certificates.map((cert) => (
-                <div key={cert.index} className="certificate-item">
-                  <div className="certificate-info">
+                <div key={cert.index} className="certificate-card">
+                  <div className="card-header">
                     <h3>{cert.studentName}</h3>
-                    <p>IPFS: {cert.ipfsHash}</p>
-                    <p className={`status ${cert.isValid ? "valid" : "revoked"}`}>
-                      Status: {cert.isValid ? "Valid" : "Revoked"}
-                    </p>
+                    <span className={`status-badge ${cert.isValid ? 'valid' : 'revoked'}`}>
+                      {cert.isValid ? 'VALID' : 'REVOKED'}
+                    </span>
+                  </div>
+                  <div className="card-body">
+                    <div className="detail-row">
+                      <span className="detail-label">IPFS Hash:</span>
+                      <span className="detail-value">{cert.ipfsHash}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="detail-label">Certificate ID:</span>
+                      <span className="detail-value">{cert.index}</span>
+                    </div>
                   </div>
                   {cert.isValid && (
-                    <button
-                      className="revoke-button"
-                      onClick={() => revokeCertificate(cert.index)}
-                      disabled={isLoading}
-                    >
-                      Revoke
-                    </button>
+                    <div className="card-footer">
+                      <button
+                        className="danger-button"
+                        onClick={() => revokeCertificate(cert.index)}
+                        disabled={isLoading}
+                      >
+                        Revoke Certificate
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}
             </div>
           ) : currentStudent ? (
-            <p className="no-certificates">No certificates found for this student</p>
-          ) : null}
+            <div className="empty-state">
+              <p>No certificates found for this student</p>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <p>Search for a student to view their certificates</p>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -349,26 +422,47 @@ function App() {
   };
 
   return (
-    <div className="app-container">
+    <div className="app">
       <header className="app-header">
-        <h1>🎓 Certificate System</h1>
-        {account && (
-          <div className="wallet-info">
-            <span className="wallet-address">
-              {account.slice(0, 6)}...{account.slice(-4)}
-            </span>
-            {isUniversity && <span className="university-badge">UNIVERSITY</span>}
-          </div>
-        )}
+        <div className="header-content">
+          <h1>Blockchain Certificate System</h1>
+          {account ? (
+            <div className="account-info">
+              <span className="wallet-address">
+                {account.slice(0, 6)}...{account.slice(-4)}
+              </span>
+              {isUniversity && <span className="university-badge">University</span>}
+            </div>
+          ) : (
+            <button
+              className="connect-wallet-button"
+              onClick={connectWallet}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Connecting...' : 'Connect Wallet'}
+            </button>
+          )}
+        </div>
       </header>
 
-      <main className="app-main">
+      <main className="app-content">
         {isLoading ? (
-          <div className="loading">Loading blockchain data...</div>
+          <div className="loading-screen">
+            <div className="loading-spinner"></div>
+            <p>Loading blockchain data...</p>
+          </div>
         ) : !account ? (
-          <button className="connect-button" onClick={connectWallet}>
-            Connect Wallet
-          </button>
+          <div className="welcome-screen">
+            <h2>Welcome to Certificate System</h2>
+            <p>Connect your wallet to view or manage certificates</p>
+            <button
+              className="connect-wallet-button large"
+              onClick={connectWallet}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Connecting...' : 'Connect Wallet'}
+            </button>
+          </div>
         ) : isUniversity ? (
           <UniversityView contract={contract} />
         ) : (
